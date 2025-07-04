@@ -39,11 +39,12 @@ def main():
                     sq_selected = (row, col)
                     player_clicks.append(sq_selected)
                 if len(player_clicks) == 2:
-                    move = ChessEngine.move(player_clicks[0], player_clicks[1], gs.board)
+                    move = ChessEngine.Move(player_clicks[0], player_clicks[1], gs.board)
                     if move in valid_moves:
                         gs.make_move(move)
                         move_made = True
                     sq_selected = ()
+                    player_clicks = []
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_z:
                     gs.undo_move()

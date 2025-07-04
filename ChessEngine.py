@@ -9,6 +9,7 @@ class game_state():
                 ["--","--","--","--","--","--","--","--"],
                 ["wP","wP","wP","wP","wP","wP","wP","wP"],
                 ["wR","wN","wB","wQ","wK","wB","wN","wR"]]
+        self.move_functions = {"P":self.get_pawn_moves, "N":self.get_knight_moves, "B":self.get_bishop_moves, "R": self.get_rook_moves, "Q":self.get_queen_moves, "K": self.get_king_moves}
         self.white_to_move = True
         self.move_log = []
 
@@ -34,38 +35,50 @@ class game_state():
         for r in range(len(self.board)):
             for c in range(len(self.board[r])):
                 turn = self.board[r][c][0]
-                if (turn == "w" and self.white_to_move) and (turn == "b" and not self.white_to_move):
+                if (turn == "w" and self.white_to_move) or (turn == "b" and not self.white_to_move):
                     piece = self.board[r][c][1]
-                    if piece == "P":
-                        self.get_pawn_move(r,c,moves)
-                    elif piece == "N":
-                        self.get_knight_move(r,c,moves)
-                    elif piece == "B":
-                        self.get_bishop_move(r,c,moves)
-                    elif piece == "R":
-                        self.get_rook_move(r,c,moves)
-                    elif piece == "Q":
-                        self.get_queen_move(r, c, moves)
-                    elif piece == "K":
-                        self.get_king_move(r, c, moves)
+                    self.move_functions[piece](r,c,moves)
         return moves
 
-    def get_pawn_move(self, r, c, moves):
+    def get_pawn_moves(self, r, c, moves):
+        if self.white_to_move:
+            if self.board[r-1][c] == "--":
+                moves.append(Move((r,c),(r-1,c), self.board))
+                if r == 6 and self.board[r-2][c] == "--":
+                    moves.append(Move((r,c),(r-2,c), self.board))
+            if c-1 >= 0:
+                if self.board[r-1][c-1][0] == "b":
+                    moves.append(Move((r,c), (r-1,c-1),self.board))
+            if c+1 <= 7:
+                if self.board[r-1][c+1][0] == "b":
+                    moves.append(Move((r,c), (r-1,c+1),self.board))
+        else:
+            if self.board[r+1][c] == "--":
+                moves.append(Move((r,c),(r+1,c), self.board))
+                if r == 1 and self.board[r+2][c] == "--":
+                    moves.append(Move((r,c),(r+2,c), self.board))
+            if c-1 >= 0:
+                if self.board[r+1][c-1][0] == "w":
+                    moves.append(Move((r,c), (r+1,c-1),self.board))
+            if c+1 <= 7:
+                if self.board[r+1][c+1][0] == "w":
+                    moves.append(Move((r,c), (r+1,c+1),self.board))
+
+
+    def get_knight_moves(self, r, c, moves):
         pass
-    def get_knight_move(self, r, c, moves):
+    def get_bishop_moves(self, r, c, moves):
         pass
-    def get_bishop_move(self, r, c, moves):
+    def get_rook_moves(self, r, c, moves):
         pass
-    def get_rook_move(self, r, c, moves):
+    def get_queen_moves(self, r, c, moves):
         pass
-    def get_queen_move(self, r, c, moves):
-        pass
-    def get_king_move(self, r, c, moves):
+    def get_king_moves(self, r, c, moves):
         pass
 
 
 
-class move():
+class Move():
 
     ranks_to_rows = {"1": 7, "2":6, "3":5, "4":4, "5":3,
                      "6":2, "7":1, "8":0}
@@ -85,12 +98,12 @@ class move():
         self.move_id = self.start_row * 1000 + self.start_col * 100 + self.end_row * 10 + self.end_col
 
     def __eq__(self, other):
-        if isinstance(other, move):
+        if isinstance(other, Move):
             return self.move_id == other.move_id
         return False
 
     def get_chess_notation(self):
-        return self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file((self.end_row, self.end_col))
+        return self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file(self.end_row, self.end_col)
 
     def get_rank_file(self,r,c):
         return self.cols_to_files[c] + self.rows_to_ranks[r]
