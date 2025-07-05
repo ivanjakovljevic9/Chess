@@ -25,6 +25,9 @@ def main():
     sq_selected = ()
     player_clicks = []
     while running:
+        if gs.checkmate or gs.stalemate:
+            running = False
+            print("Checkmate or stalemate")
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
@@ -43,8 +46,10 @@ def main():
                     if move in valid_moves:
                         gs.make_move(move)
                         move_made = True
-                    sq_selected = ()
-                    player_clicks = []
+                        sq_selected = ()
+                        player_clicks = []
+                    else:
+                        player_clicks = [sq_selected]
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_z:
                     gs.undo_move()

@@ -12,12 +12,20 @@ class game_state():
         self.move_functions = {"P":self.get_pawn_moves, "N":self.get_knight_moves, "B":self.get_bishop_moves, "R": self.get_rook_moves, "Q":self.get_queen_moves, "K": self.get_king_moves}
         self.white_to_move = True
         self.move_log = []
+        self.white_king_location = (7,4)
+        self.black_king_location = (0,4)
+        self.checkmate = False
+        self.stalemate = False
 
     def make_move(self, move):
         self.board[move.start_row][move.start_col] = "--"
         self.board[move.end_row][move.end_col] = move.piece_moved
         self.move_log.append(move)
         self.white_to_move = not self.white_to_move
+        if move.piece_moved == "wK":
+            self.white_king_location = (move.end_row, move.end_col)
+        elif move.piece_moved == "bK":
+            self.black_king_location = (move.end_row, move.end_col)
 
 
     def undo_move(self):
@@ -26,9 +34,45 @@ class game_state():
             self.board[move.start_row][move.start_col] = move.piece_moved
             self.board[move.end_row][move.end_col] = move.piece_captured
             self.white_to_move = not self.white_to_move
+            if move.piece_moved == "wK":
+                self.white_king_location = (move.start_row, move.start_col)
+            elif move.piece_moved == "bK":
+                self.black_king_location = (move.start_row, move.start_col)
 
     def get_valid_moves(self):
-        return self.get_all_possible_moves()
+        moves = self.get_all_possible_moves()
+        for i in range(len(moves)-1, -1, -1):
+            self.make_move(moves[i])
+            self.white_to_move = not self.white_to_move
+            if self.in_check():
+                moves.remove(moves[i])
+            self.white_to_move = not self.white_to_move
+            self.undo_move()
+        if len(moves) == 0:
+            if self.in_check():
+                self.checkmate = True
+            else:
+                self.stalemate = True
+        else:
+            self.checkmate = False
+            self.stalemate = False
+        return moves
+
+    def in_check(self):
+        if self.white_to_move:
+            return self.sq_under_attack(self.white_king_location[0], self.white_king_location[1])
+        else:
+            return self.sq_under_attack(self.black_king_location[0], self.black_king_location[1])
+
+
+    def sq_under_attack(self, r, c):
+        self.white_to_move = not self.white_to_move
+        opponent_moves = self.get_all_possible_moves()
+        self.white_to_move = not self.white_to_move
+        for move in opponent_moves:
+            if move.end_row == r and move.end_col == c:
+                return True
+        return False
 
     def get_all_possible_moves(self):
         moves = []
@@ -77,7 +121,7 @@ class game_state():
                     moves.append(Move((r, c), (end_row, end_col), self.board))
 
     def get_bishop_moves(self, r, c, moves):
-        directions = ((1, 1), (-1, 1), (-1, 1), (-1, -1))
+        directions = ((1, 1), (-1, 1), (1, -1), (-1, -1))
         enemy_color = "b" if self.white_to_move else "w"
         for d in directions:
             for i in range(1, 8):
