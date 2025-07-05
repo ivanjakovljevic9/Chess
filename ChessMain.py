@@ -43,17 +43,26 @@ def main():
                     player_clicks.append(sq_selected)
                 if len(player_clicks) == 2:
                     move = ChessEngine.Move(player_clicks[0], player_clicks[1], gs.board)
-                    if move in valid_moves:
-                        gs.make_move(move)
-                        move_made = True
-                        sq_selected = ()
-                        player_clicks = []
-                    else:
+                    for i in range(len(valid_moves)):
+                        if move == valid_moves[i]:
+                            gs.make_move(valid_moves[i])
+                            move_made = True
+                            sq_selected = ()
+                            player_clicks = []
+                    if not move_made:
                         player_clicks = [sq_selected]
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_z:
                     gs.undo_move()
                     move_made = True
+                if e.key == p.K_q:
+                    gs.promotion_type = "Q"
+                elif e.key == p.K_k:
+                    gs.promotion_type = "N"
+                elif e.key == p.K_b:
+                    gs.promotion_type = "B"
+                elif e.key == p.K_r:
+                    gs.promotion_type = "R"
         if move_made:
             valid_moves = gs.get_valid_moves()
             move_made = False
