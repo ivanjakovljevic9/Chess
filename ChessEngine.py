@@ -9,7 +9,7 @@ class game_state():
                 ["--","--","--","--","--","--","--","--"],
                 ["--","--","--","--","--","--","--","--"],
                 ["--","--","--","--","--","--","--","--"],
-                ["--","--","--","--","--","--","bP","--"],
+                ["--","--","--","--","--","--","--","--"],
                 ["wP","wP","wP","wP","wP","wP","wP","wP"],
                 ["wR","wN","wB","wQ","wK","wB","wN","wR"]]
         self.move_functions = {"P":self.get_pawn_moves, "N":self.get_knight_moves, "B":self.get_bishop_moves, "R": self.get_rook_moves, "Q":self.get_queen_moves, "K": self.get_king_moves}
