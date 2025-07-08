@@ -126,7 +126,6 @@ class GameState:
             self.checkmate = False
             self.stalemate = False
         self.enpassant_possible = temp_enpassant_possible
-        print(temp_castle_rights == self.current_castling_rights)
         self.current_castling_rights = temp_castle_rights
         return moves
 
