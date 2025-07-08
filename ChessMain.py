@@ -17,7 +17,7 @@ def main():
     screen = p.display.set_mode((Width, Height))
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
-    gs = ChessEngine.game_state()
+    gs = ChessEngine.GameState()
     valid_moves = gs.get_valid_moves()
     move_made = False
     load_Images()
