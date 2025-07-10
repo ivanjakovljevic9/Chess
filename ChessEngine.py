@@ -22,7 +22,7 @@ class GameState:
         self.castle_rights_log = [CastleRights(self.current_castling_rights.wks, self.current_castling_rights.wqs, self.current_castling_rights.bks, self.current_castling_rights.bqs)]
 
 
-    def make_move(self, move):
+    def make_move(self, move, t = False):
         self.board[move.start_row][move.start_col] = "--"
         self.board[move.end_row][move.end_col] = move.piece_moved
         self.move_log.append(move)
@@ -50,13 +50,13 @@ class GameState:
             else:
                 self.board[move.end_row][move.end_col + 1] = self.board[move.end_row][move.end_col - 2]
                 self.board[move.end_row][move.end_col - 2] = "--"
-
-        self.update_castle_rights(move)
-        self.castle_rights_log.append(CastleRights(self.current_castling_rights.wks, self.current_castling_rights.wqs,
+        if t:
+            self.update_castle_rights(move, t)
+            self.castle_rights_log.append(CastleRights(self.current_castling_rights.wks, self.current_castling_rights.wqs,
                                                    self.current_castling_rights.bks, self.current_castling_rights.bqs))
 
 
-    def undo_move(self):
+    def undo_move(self, t = False):
         if len(self.move_log) != 0:
             move = self.move_log.pop()
             self.board[move.start_row][move.start_col] = move.piece_moved
@@ -72,8 +72,9 @@ class GameState:
                 self.enpassant_possible = (move.end_row, move.end_col)
             if move.piece_moved[1] == "P" and abs(move.start_row - move.end_row) == 2:
                 self.enpassant_possible = ()
-            self.castle_rights_log.pop()
-            self.current_castling_rights = self.castle_rights_log[-1]
+            if t:
+                self.castle_rights_log.pop()
+                self.current_castling_rights = self.castle_rights_log[-1]
             if move.is_castle_move:
                 if move.end_col - move.start_col == 2:
                     self.board[move.end_row][move.end_col + 1] = self.board[move.end_row][move.end_col - 1]
@@ -82,7 +83,7 @@ class GameState:
                     self.board[move.end_row][move.end_col - 2] = self.board[move.end_row][move.end_col + 1]
                     self.board[move.end_row][move.end_col + 1] = "--"
 
-    def update_castle_rights(self, move):
+    def update_castle_rights(self, move, t):
         if move.piece_moved == "wK":
             self.current_castling_rights.wks = False
             self.current_castling_rights.wqs = False
@@ -100,6 +101,18 @@ class GameState:
                 if move.start_col == 0:
                     self.current_castling_rights.bqs = False
                 elif move.start_col == 7:
+                    self.current_castling_rights.bks = False
+        elif move.piece_captured == "wR":
+            if move.end_row == 7:
+                if move.end_col == 0:
+                    self.current_castling_rights.wqs = False
+                elif move.end_col == 7:
+                    self.current_castling_rights.wks = False
+        elif move.piece_captured == "bR":
+            if move.end_row == 0:
+                if move.end_col == 0:
+                    self.current_castling_rights.bqs = False
+                elif move.end_col == 7:
                     self.current_castling_rights.bks = False
 
     def get_valid_moves(self):
@@ -163,7 +176,7 @@ class GameState:
                 if self.board[r-1][c-1][0] == "b":
                     moves.append(Move((r,c), (r-1,c-1),self.board))
                 elif (r-1,c-1) == self.enpassant_possible:
-                    moves.append(Move((r,c,), (r-1,c-1), self.board, is_enpassant_move=True))
+                    moves.append(Move((r,c,), (r-1,c-1), self.board, is_enpassant_move = True))
             if c+1 <= 7:
                 if self.board[r-1][c+1][0] == "b":
                     moves.append(Move((r,c), (r-1,c+1),self.board))
@@ -178,7 +191,7 @@ class GameState:
                 if self.board[r+1][c-1][0] == "w":
                     moves.append(Move((r,c), (r+1,c-1),self.board))
                 elif (r + 1, c - 1) == self.enpassant_possible:
-                    moves.append(Move((r, c,), (r + 1, c - 1), self.board, is_enpassant_move=True))
+                    moves.append(Move((r, c,), (r + 1, c - 1), self.board, is_enpassant_move = True))
             if c+1 <= 7:
                 if self.board[r+1][c+1][0] == "w":
                     moves.append(Move((r,c), (r+1,c+1),self.board))
@@ -260,12 +273,12 @@ class GameState:
     def get_king_side_castle_move(self,  r, c, moves):
         if self.board[r][c + 1] == "--" and self.board[r][c + 2] == "--":
             if not self.sq_under_attack(r, c + 1) and not self.sq_under_attack(r, c + 2):
-                moves.append(Move((r,c), (r, c + 2), self.board, is_castle_move=True))
+                moves.append(Move((r,c), (r, c + 2), self.board, is_castle_move = True))
 
     def get_queen_side_castle_move(self, r, c, moves):
         if self.board[r][c - 1] == "--" and self.board[r][c - 2] == "--" and self.board[r][c - 3] == "--":
             if not self.sq_under_attack(r, c - 1) and not self.sq_under_attack(r, c - 2):
-                moves.append(Move((r, c), (r, c - 2), self.board, is_castle_move=True))
+                moves.append(Move((r, c), (r, c - 2), self.board, is_castle_move = True))
 
 
 class CastleRights:
