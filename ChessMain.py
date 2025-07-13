@@ -59,6 +59,7 @@ def main():
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_z:
                     gs.undo_move(t = True)
+                    gs.undo_move(t = True)
                     move_made = True
                     animate = False
                 if e.key == p.K_q:
@@ -77,7 +78,9 @@ def main():
                     move_made = False
                     animate = False
         if not game_over and not human_turn:
-            AI_move = ChessAI.find_random_move(valid_moves)
+            AI_move = ChessAI.find_best_move(gs, valid_moves)
+            if AI_move is None:
+                AI_move = ChessAI.find_random_move(valid_moves)
             gs.make_move(AI_move, t = True)
             move_made = True
             animate = True
