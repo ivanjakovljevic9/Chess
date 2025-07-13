@@ -82,6 +82,8 @@ class GameState:
                 else:
                     self.board[move.end_row][move.end_col - 2] = self.board[move.end_row][move.end_col + 1]
                     self.board[move.end_row][move.end_col + 1] = "--"
+        self.checkmate = False
+        self.stalemate = False
 
     def update_castle_rights(self, move, t):
         if move.piece_moved == "wK":
@@ -264,7 +266,7 @@ class GameState:
 
     def get_castle_moves(self, r, c, moves):
         if self.sq_under_attack(r, c):
-            return
+            return None
         if (self.white_to_move and self.current_castling_rights.wks) or (not self.white_to_move and self.current_castling_rights.bks):
             self.get_king_side_castle_move(r, c, moves)
         if (self.white_to_move and self.current_castling_rights.wqs) or (not self.white_to_move and self.current_castling_rights.bqs):

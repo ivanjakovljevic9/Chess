@@ -62,6 +62,7 @@ def main():
                     gs.undo_move(t = True)
                     move_made = True
                     animate = False
+                    game_over = False
                 if e.key == p.K_q:
                     gs.promotion_type = "Q"
                 elif e.key == p.K_k:
@@ -70,13 +71,14 @@ def main():
                     gs.promotion_type = "B"
                 elif e.key == p.K_r:
                     gs.promotion_type = "R"
-                if e.key == p.K_p:
+                if e.key == p.K_p: #Press P Key To Reset Because R is used for Rook Promotion
                     gs = ChessEngine.GameState()
                     valid_moves = gs.get_valid_moves()
                     sq_selected = ()
                     player_clicks = []
                     move_made = False
                     animate = False
+                    game_over = False
         if not game_over and not human_turn:
             AI_move = ChessAI.find_best_move(gs, valid_moves)
             if AI_move is None:
