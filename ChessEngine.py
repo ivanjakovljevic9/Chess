@@ -17,6 +17,7 @@ class GameState:
         self.checkmate = False
         self.stalemate = False
         self.enpassant_possible = ()
+        self.enpassant_possible_log = [self.enpassant_possible]
         self.promotion_type = "Q"
         self.current_castling_rights = CastleRights(True, True, True, True)
         self.castle_rights_log = [CastleRights(self.current_castling_rights.wks, self.current_castling_rights.wqs, self.current_castling_rights.bks, self.current_castling_rights.bqs)]
@@ -42,6 +43,8 @@ class GameState:
             self.enpassant_possible = ((move.start_row+move.end_row)//2,move.start_col)
         else:
             self.enpassant_possible = ()
+
+        self.enpassant_possible_log.append(self.enpassant_possible)
 
         if move.is_castle_move:
             if move.end_col - move.start_col == 2:
@@ -69,9 +72,8 @@ class GameState:
             if move.is_enpassant_move:
                 self.board[move.end_row][move.end_col] = "--"
                 self.board[move.start_row][move.end_col] = move.piece_captured
-                self.enpassant_possible = (move.end_row, move.end_col)
-            if move.piece_moved[1] == "P" and abs(move.start_row - move.end_row) == 2:
-                self.enpassant_possible = ()
+                self.enpassant_possible_log.pop()
+                self.enpassant_possible = self.enpassant_possible_log[-1]
             if t:
                 self.castle_rights_log.pop()
                 self.current_castling_rights = self.castle_rights_log[-1]
@@ -311,6 +313,7 @@ class Move:
         self.is_enpassant_move = is_enpassant_move
         if self.is_enpassant_move:
             self.piece_captured = "wP" if self.piece_moved == "bP" else "bP"
+        self.is_capture = self.piece_captured != "--"
         self.is_castle_move = is_castle_move
         self.move_id = self.start_row * 1000 + self.start_col * 100 + self.end_row * 10 + self.end_col
 
@@ -324,3 +327,19 @@ class Move:
 
     def get_rank_file(self,r,c):
         return self.cols_to_files[c] + self.rows_to_ranks[r]
+
+    def __str__(self):
+        if self.is_castle_move:
+            return "O-O" if self.end_col == 6 else "O-O-O"
+        end_square = self.get_rank_file(self.end_row, self.end_col)
+
+        if self.piece_moved[1] == "P":
+            if self.is_capture:
+                return self.cols_to_files[self.start_col] + "x" + end_square
+            else:
+                return end_square
+
+        move_string = self.piece_moved[1]
+        if self.is_capture:
+            move_string += "x"
+        return move_string + end_square
