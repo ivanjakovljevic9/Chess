@@ -72,8 +72,8 @@ class GameState:
             if move.is_enpassant_move:
                 self.board[move.end_row][move.end_col] = "--"
                 self.board[move.start_row][move.end_col] = move.piece_captured
-                self.enpassant_possible_log.pop()
-                self.enpassant_possible = self.enpassant_possible_log[-1]
+            self.enpassant_possible_log.pop()
+            self.enpassant_possible = self.enpassant_possible_log[-1]
             if t:
                 self.castle_rights_log.pop()
                 self.current_castling_rights = self.castle_rights_log[-1]

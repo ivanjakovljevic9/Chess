@@ -1,6 +1,9 @@
 import pygame as p
 import ChessEngine
 import ChessAI
+from multiprocessing import Process, Queue
+
+from ChessAI import find_best_move
 
 Board_Width = Board_Height = 512
 move_log_panel_width = 250
@@ -32,13 +35,15 @@ def main():
     game_over = False
     player_one = True
     player_two = False
+    AI_thinking = False
+    move_finder_process = None
     while running:
         human_turn = (gs.white_to_move and player_one) or (not gs.white_to_move and player_two)
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
             elif e.type == p.MOUSEBUTTONDOWN:
-                if not game_over and human_turn:
+                if not game_over:
                     location = p.mouse.get_pos()
                     col = location[0] // Sq_Size
                     row = location[1] // Sq_Size
@@ -48,7 +53,7 @@ def main():
                     else:
                         sq_selected = (row, col)
                         player_clicks.append(sq_selected)
-                    if len(player_clicks) == 2:
+                    if len(player_clicks) == 2 and human_turn:
                         move = ChessEngine.Move(player_clicks[0], player_clicks[1], gs.board)
                         for i in range(len(valid_moves)):
                             if move == valid_moves[i]:
@@ -62,10 +67,12 @@ def main():
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_z:
                     gs.undo_move(t = True)
-                    gs.undo_move(t = True)
                     move_made = True
                     animate = False
                     game_over = False
+                    if AI_thinking:
+                        move_finder_process.terminate()
+                        AI_thinking = False
                 if e.key == p.K_q:
                     gs.promotion_type = "Q"
                 elif e.key == p.K_k:
@@ -82,13 +89,23 @@ def main():
                     move_made = False
                     animate = False
                     game_over = False
+                    if AI_thinking:
+                        move_finder_process.terminate()
+                        AI_thinking = False
         if not game_over and not human_turn:
-            AI_move = ChessAI.find_best_move(gs, valid_moves)
-            if AI_move is None:
-                AI_move = ChessAI.find_random_move(valid_moves)
-            gs.make_move(AI_move, t = True)
-            move_made = True
-            animate = True
+            if not AI_thinking:
+                AI_thinking = True
+                return_queue = Queue()
+                move_finder_process = Process(target=find_best_move, args=(gs, valid_moves, return_queue))
+                move_finder_process.start()
+            if not move_finder_process.is_alive():
+                AI_move = return_queue.get()
+                if AI_move is None:
+                    AI_move = ChessAI.find_random_move(valid_moves)
+                gs.make_move(AI_move, t = True)
+                move_made = True
+                animate = True
+                AI_thinking = False
         if move_made:
             if animate:
                 animate_move(gs.move_log[-1], screen, gs.board, clock)
